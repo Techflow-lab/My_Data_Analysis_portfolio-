@@ -35,7 +35,7 @@ A raw WHO-style dataset (~2,900 rows, 193 countries) with duplicates and missing
 - Developed vs. developing country groups: country count and average life expectancy
 - Life expectancy vs. average BMI, to test whether the income effect is confounded
 
-> **Key finding:** *[Fill in your own 1–2 sentence conclusion with the actual numbers you obtained — e.g. the average life-expectancy gap between the high- and low-GDP cohorts.]*
+
 
 ---
 
@@ -56,7 +56,7 @@ Two related tables (≈32,000 geographic records + income statistics) joined and
 - Income by settlement type (City / Town / Borough / CDP), filtered with `HAVING COUNT(...) > 100` so that small, statistically unreliable categories cannot distort the ranking
 - City-level income ranking within each state
 
-> **Key finding:** *[Fill in — e.g. which settlement type carries the highest median income and by how much.]*
+
 
 ---
 

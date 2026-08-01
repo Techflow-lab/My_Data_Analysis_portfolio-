@@ -74,6 +74,7 @@ An interactive dashboard on 1,470 employee records, built on a **star schema**: 
 
 **Why it belongs in an analyst portfolio:** it is the *communication* end of the workflow — the point where the analysis stops being a query result and becomes something a non-technical decision-maker can use.
 
+<img width="1914" height="950" alt="image" src="https://github.com/user-attachments/assets/5b6fdafd-c76a-4e3f-abfc-d227e6fec313" />
 
 ---
 

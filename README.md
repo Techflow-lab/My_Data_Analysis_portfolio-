@@ -74,7 +74,6 @@ An interactive dashboard on 1,470 employee records, built on a **star schema**: 
 
 **Why it belongs in an analyst portfolio:** it is the *communication* end of the workflow — the point where the analysis stops being a query result and becomes something a non-technical decision-maker can use.
 
-> 📊 *[Add 1–2 dashboard screenshots here — a `.pbix` file cannot be previewed on GitHub, and a recruiter will not download it. This single change has the highest impact on the repository.]*
 
 ---
 

@@ -70,24 +70,43 @@ DELIMITER ;
 CALL order_total(NULL, '2020-01-30');
 
 -- OUTPUT PARAMETER 
-DROP PROCEDURE IF EXISTS sum_totals;
+DROP PROCEDURE IF EXISTS PERCENTAGE;
 DELIMITER $$
-CREATE PROCEDURE sum_totals(p_product_id int, OUT sum_this_order DECIMAL(9,2))
+CREATE PROCEDURE PERCENTAGE(p_product_id int, OUT sum_this_order DECIMAL(9,2))
 BEGIN 
+DECLARE total_orders DECIMAL(9,2);
+DECLARE percentage_order DECIMAL(9,2);
 	SELECT SUM(order_total)
     INTO sum_this_order
     FROM customer_orders
     WHERE product_id = p_product_id;
+    
+    SELECT SUM(order_total)
+    INTO total_orders
+    FROM customer_orders; 
+    
+    SET percentage_order = ROUND(sum_this_order/total_orders*100,2);
+    
+    SELECT sum_this_order;
+    SELECT total_orders;
+    SELECT percentage_order;
 END $$
 
 DELIMITER ;
 
-SET @sum_this_order = 0;
-CALL sum_totals(1001, @sum_this_order);
-SELECT @sum_this_order;
+	CALL PERCENTAGE(1001, @sum_this_order);
+	SELECT @sum_this_order;
+    SELECT @total_orders;
+    SELECT @percentage_order;
+-- SET @sum_this_order = 0;
+-- CALL PERCENTAGE(1001, @sum_this_order);
+-- SELECT @sum_this_order;
 
-SELECT ROUND(@sum_this_order/SUM(order_total)*100,2) AS PERCENTAGE
-FROM customer_orders;
+-- SELECT ROUND(@sum_this_order/SUM(order_total)*100,2) AS PERCENTAGE
+-- FROM customer_orders;
+
+-- Summary: 1.local variables: declare and then assgin the value
+--          2.session variables: directly use @ prefix to set a value to it
 
 
 

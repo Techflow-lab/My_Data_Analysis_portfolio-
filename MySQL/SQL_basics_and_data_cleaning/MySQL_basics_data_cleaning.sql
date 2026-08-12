@@ -260,7 +260,8 @@ UPDATE customer_sweepstakes
 SET `Are you over 18?` = 'N'
 WHERE (YEAR(NOW()) - birth_date) < 18;
 
-
+--                                         Advanced SQL CHAPTER
+-- Recursion CTE
 
 
 

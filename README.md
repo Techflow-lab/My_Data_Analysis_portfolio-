@@ -1,130 +1,107 @@
-# Data Analytics Portfolio — SQL · Python · Power BI
+# Data Analysis Portfolio
+
+**Zhuoda Li** | Management and Data Science, Technical University of Munich
+ zhuodali028@gmail.com
+
+A working portfolio of operational data analysis: taking raw, inconsistent business data and turning it into structured databases, verified tables and reports that people can actually make decisions on. Every project here follows the same path from a messy source file to a trustworthy answer.
+
+The emphasis is deliberately on the unglamorous half of analytics. Most of the value in a real business sits in duplicated order rows, blank customer fields and the same entity spelled three different ways. This repository shows how I find those problems, fix them, and prove the fix worked.
 
 ---
 
-## What this repository is
+## What this repository demonstrates
 
-A self-directed portfolio built around one question: **can I take raw, messy source data and carry it all the way to a decision a business stakeholder can act on — end to end, on my own?**
-
-Each project below covers a different segment of that chain. Together they cover the full analyst workflow: *ingest → model → clean → analyse → visualise → communicate.*
-
-| # | Project | Business question | Stack | Deliverable |
-|---|---------|-------------------|-------|-------------|
-| 1 | [World Life Expectancy](#1-world-life-expectancy--sql-cleaning--eda) | Does national income explain life expectancy? | MySQL | Cleaned table + EDA queries |
-| 2 | [US Household Income](#2-us-household-income--sql-cleaning--geo-economic-analysis) | Which states and settlement types have the highest incomes? | MySQL | Cleaned two-table model + analysis |
-| 3 | [HR Attrition Dashboard](#3-hr-attrition-dashboard--power-bi) | Who leaves the company, and where should HR intervene? | Power BI, Excel | Interactive `.pbix` dashboard |
-| 4 | [Python Analysis Foundations](#4-python-analysis-foundations) | — | Python, pandas, regex | Reference notebooks |
-
----
-
-## 1. World Life Expectancy — SQL cleaning & EDA
-
-`MySQL/world_life_expectancy_project/`
-
-A raw WHO-style dataset (~2,900 rows, 193 countries) with duplicates and missing values, cleaned and analysed entirely in SQL.
-
-**Data cleaning**
-- **Deduplication** — identified duplicate country–year records with a `ROW_NUMBER() OVER (PARTITION BY ...)` window function over a composite key, then deleted via a subquery on the row IDs.
-- **Categorical imputation** — filled blank `Status` values through a self-join that propagates the known Developed / Developing label from other years of the same country.
-- **Numeric imputation** — filled missing `Life expectancy` values by **linear interpolation between the adjacent years**, using a triple self-join on `(country, year-1)` and `(country, year+1)`.
-- Each cleaning step is followed by an explicit verification query — cleaning is only finished once it is proven.
-
-**Analysis**
-- Life expectancy vs. average GDP per country, ranked
-- High-GDP vs. low-GDP cohort comparison using conditional aggregation (`SUM(CASE WHEN ...)`)
-- Developed vs. developing country groups: country count and average life expectancy
-- Life expectancy vs. average BMI, to test whether the income effect is confounded
-
-
+| Area | Applied in |
+| :--- | :--- |
+| Relational modeling, DDL, constraints, typed imports | `MySQL/USHousehold_project` |
+| Duplicate detection and removal with window functions | `MySQL/USHousehold_project`, `MySQL/world_life_expectancy_project` |
+| Standardizing inconsistent values and recovering nulls | `MySQL/world_life_expectancy_project` |
+| CTEs, subqueries, temporary tables, aggregation | `MySQL/advancedSQL` |
+| String, date and conditional SQL functions | `MySQL/SQL_basics_and_data_cleaning` |
+| Python cleaning and exploratory analysis with Pandas | `Python_project` |
+| Business dashboards and visual reporting | `PowerBI`, `Excel` |
 
 ---
 
-## 2. US Household Income — SQL cleaning & geo-economic analysis
+## Projects
 
-`MySQL/USHousehold_project/`
+### 1. US Household Income: raw file to queryable database
+`MySQL/USHousehold_project`
 
-Two related tables (≈32,000 geographic records + income statistics) joined and analysed in MySQL.
+**The situation.** A flat export of roughly thirty thousand geographic and income records, delivered with duplicate row identifiers, missing place names and state names entered inconsistently in the same column.
 
-**Data cleaning**
-- Duplicate removal via windowed `ROW_NUMBER()`, with a distinct-count check to confirm uniqueness
-- **Standardisation of dirty categorical data** — corrected misspelt and inconsistently cased state names (`georia` → `Georgia`, `alabama` → `Alabama`) and harmonised inconsistent place-type labels (`Boroughs` → `Borough`)
-- Handled `NULL` place names
+**What I did.**
+* Defined a typed schema with a primary key and explicit `NOT NULL` constraints, then loaded the raw records into it, moving the data out of a spreadsheet shape and into a structure that can be queried and joined.
+* Removed duplicate rows using `ROW_NUMBER() OVER (PARTITION BY ...)` inside a subquery, then reran a grouped count to confirm every identifier appeared exactly once.
+* Standardized inconsistent categorical values, for example collapsing `alabama` into `Alabama`, correcting a misspelled `georia`, and merging `Boroughs` into `Borough` so that grouping by category returns honest totals.
+* Filled missing `Place` values from related records instead of deleting the rows, preserving the underlying observations.
+* Produced state level aggregations of land and water area, and joined the cleaned location table against the income statistics table for mean and median household income by state and by area type.
 
-**Analysis**
-- Total land and water area aggregated by state
-- Top 10 states by average median household income (inner join between the geography and statistics tables, zero-income records excluded)
-- Income by settlement type (City / Town / Borough / CDP), filtered with `HAVING COUNT(...) > 100` so that small, statistically unreliable categories cannot distort the ranking
-- City-level income ranking within each state
-
-
+**Why it matters.** Before the cleanup, a simple `GROUP BY State_Name` would have reported Alabama twice and undercounted every total. That is the class of silent error this project is built to catch.
 
 ---
 
-## 3. HR Attrition Dashboard — Power BI
+### 2. World Life Expectancy: data quality pipeline
+`MySQL/world_life_expectancy_project`
 
-`PowerBI/Finalproject_PowerBI.pbix` · source data: `HR_Data.xlsx`
+**The situation.** A country and year panel dataset with duplicated country and year combinations, blank development status fields and missing life expectancy values.
 
-An interactive dashboard on 1,470 employee records, built on a **star schema**: one fact table (`HR_Data`, 38 attributes) joined to three dimension tables (`Departments`, `Jobs`, `Education`) via surrogate keys.
+**What I did.**
+* Identified duplicate country and year pairs with a grouped `HAVING COUNT(...) > 1` check before touching anything, so the scope of the problem was known first.
+* Deleted only the surplus rows using a window function ranking, keeping the original observation intact.
+* Recovered blank status values with a self join on the same country, inferring the correct label from the country's other years rather than dropping records.
+* Interpolated missing life expectancy values from the adjacent years of the same country.
+* Ran a verification query after each step to prove the table was clean before moving on.
+* Analysed the cleaned data: life expectancy growth over fifteen years by country, the relationship between GDP and life expectancy across development groups, and BMI and mortality correlations, using rolling totals and window functions.
 
-**What it covers**
-- Overall attrition rate and headcount KPIs
-- Attrition broken down by age group, department, job role, salary band, and gender
-- Behavioural drivers: overtime, business travel frequency, work–life balance, job satisfaction, years since last promotion
-- Cross-filtering so an HR manager can drill from a company-level number to the specific role that produces it
-
-**Why it belongs in an analyst portfolio:** it is the *communication* end of the workflow — the point where the analysis stops being a query result and becomes something a non-technical decision-maker can use.
-
-<img width="1914" height="950" alt="image" src="https://github.com/user-attachments/assets/5b6fdafd-c76a-4e3f-abfc-d227e6fec313" />
-
----
-
-## 4. Python Analysis Foundations
-
-`Python_project/`
-
-Reference notebooks I maintain and reuse, rather than one-off exercises:
-
-| Notebook | Content |
-|---|---|
-| `01pythonbasics.ipynb` | Python built-ins for data work, grouped by use case, with target types and mutation behaviour documented |
-| `03regex_usecase.ipynb` | Regular expressions for extracting phone numbers, emails, domains and titles from unstructured text |
-| `04pandas_basics.ipynb` | NumPy arrays, pandas Series and DataFrame construction and indexing |
-| `02unit_of_mesurement.ipynb` | Small control-flow exercise (unit converter) |
+**Why it matters.** Cleaning is only credible when it is checked. Each transformation in this project is paired with the query that confirms it.
 
 ---
 
-## Skills map
+### 3. Advanced SQL patterns
+`MySQL/advancedSQL`
 
-| Workflow stage | Tools | Where to see it |
-|---|---|---|
-| Data modelling | Star schema, primary/foreign keys | Power BI model; see also the [PostgreSQL project](https://github.com/Techflow-lab/hospital_infection_database_Germany) |
-| Data cleaning | SQL window functions, self-joins, conditional aggregation | Projects 1 & 2 |
-| Exploratory analysis | `GROUP BY` / `HAVING` / `CASE`, joins, subqueries; pandas | Projects 1, 2, 4 |
-| Text & unstructured data | Python `re` | Project 4 |
-| Visualisation & BI | Power BI, DAX, matplotlib | Project 3 |
-| Version control | Git, GitHub | This repository |
-
-**Tech stack:** MySQL · PostgreSQL · Python (pandas, NumPy, matplotlib, seaborn, SciPy) · Power BI · Excel · Git · VS Code
+Reusable query patterns applied to a bakery orders database: common table expressions, subqueries, temporary tables and grouped aggregation over customer orders, including derived metrics such as average tip per product. Includes the database setup script so the queries can be reproduced from scratch.
 
 ---
 
-## How to run
+### 4. SQL fundamentals and data cleaning functions
+`MySQL/SQL_basics_and_data_cleaning`
 
-```bash
-git clone https://github.com/Techflow-lab/My_Data_Analysis_portfolio-.git
-```
-
-- **SQL projects** — create the schema in MySQL, load the CSV in the project folder, then execute the `.sql` script top to bottom (scripts are written in workflow order: clean first, verify, then analyse).
-- **Power BI** — open the `.pbix` file in Power BI Desktop; the Excel source is in the same folder.
-- **Notebooks** — `pip install pandas numpy matplotlib seaborn`, then open in Jupyter or VS Code.
+A worked reference over a customer and film database covering string functions, date and time handling, `CASE` logic, `UNION`, and pattern location, plus a customer sweepstakes source file used for cleaning practice. These are the everyday tools for normalizing free text fields such as names, cities and addresses before import.
 
 ---
 
-## Related repositories
+### 5. Python data cleaning and exploratory analysis
+`Python_project`
 
-- **[hospital_infection_database_Germany](https://github.com/Techflow-lab/hospital_infection_database_Germany)** — relational database design and advanced analytical SQL in PostgreSQL (ER model → schema → ETL → window functions → views and functions).
-- **[it-ds-journey](https://github.com/Techflow-lab/it-ds-journey)** — university coursework and certification labs: statistics, hypothesis testing, and linear-programming optimisation.
+Jupyter notebooks working through a large job postings dataset with Pandas and NumPy:
+* `01pythonbasics.ipynb`, `02unit_of_mesurement.ipynb` : core Python and unit conversion logic.
+* `03regex_usecase.ipynb` : regular expressions for extracting and validating patterns inside untidy text fields.
+* `04pandas_basics.ipynb` : dataframe manipulation, filtering and selection.
+* `06job_data.ipynb` : loading a real job postings dataset, converting posting dates to datetime, deriving a month column, handling missing salary values, and profiling the salary distribution to find the extremes and the median.
 
 ---
 
-*Feedback on any project here is genuinely welcome — open an issue or reach out on LinkedIn.*
+### 6. Business dashboards
+`PowerBI` and `Excel`
+
+* `PowerBI/Finalproject_PowerBI.pbix` : a workforce analytics dashboard built on `HR_Data.xlsx`, reporting headcount and attrition patterns for a non technical audience.
+* `Excel/Project 1 - US Debt Tracker Project Completed.xlsx` : a tracker model built with formulas and structured references rather than manual entry, with the accompanying Excel for Data Analytics certificate.
+
+---
+
+## Tools
+
+`PostgreSQL` `MySQL` `Python (Pandas, NumPy, SciPy, Matplotlib)` `Jupyter` `Power BI` `Excel and Google Sheets` `Git`
+
+## Related work
+
+**Hospital Infection Database** : a separate repository containing a full PostgreSQL implementation on German hospital infection data, including schema design, a staging layer, DML and analytical queries in SQL and PL/pgSQL.
+
+---
+
+## How to use this repository
+
+Each project folder is self contained. SQL files run top to bottom in the order they appear and are commented by section, so a reviewer can follow the reasoning rather than just the syntax. Notebooks include the loading step, so they can be rerun end to end.
+

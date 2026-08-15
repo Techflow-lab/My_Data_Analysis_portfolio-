@@ -88,7 +88,8 @@ Jupyter notebooks working through a large job postings dataset with Pandas and N
 
 * `PowerBI/Finalproject_PowerBI.pbix` : a workforce analytics dashboard built on `HR_Data.xlsx`, reporting headcount and attrition patterns for a non technical audience.
 * `Excel/Project 1 - US Debt Tracker Project Completed.xlsx` : a tracker model built with formulas and structured references rather than manual entry, with the accompanying Excel for Data Analytics certificate.
-![PowerBI dashboard](PowerBI\Screenshot 2026-08-15 090647.png)  
+<img width="2680" height="1342" alt="image" src="https://github.com/user-attachments/assets/8e10a7ca-90ee-4389-9dcd-dcd83e284735" />
+  
 
 ---
 

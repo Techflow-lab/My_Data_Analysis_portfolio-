@@ -1,5 +1,5 @@
 -- 										Advanced SQL Chapter
--- CTE IS A WAY WE CAN USE TO IMPROVE READABLITY 
+-- CTE IS A WAY WE CAN USE TO IMPROVE READABLITY AND STRUCTURE
 SELECT product_id, SUM(order_total), SUM(tip), COUNT(tip)
 FROM bakery.customer_orders
 WHERE tip != 0
@@ -107,6 +107,73 @@ DELIMITER ;
 
 -- Summary: 1.local variables: declare and then assgin the value
 --          2.session variables: directly use @ prefix to set a value to it
+
+-- TRIGGER AND EVENTS
+DELIMITER $$
+CREATE TRIGGER update_client_invoices_by_new_payments		
+	AFTER INSERT ON client_payments
+    FOR EACH ROW
+BEGIN 
+	UPDATE client_invoices
+    SET total_paid = total_paid + NEW.amount_paid
+    WHERE invoice_id = NEW.invoice_id;
+END $$
+
+DELIMITER ;
+
+INSERT INTO client_payments
+VALUES(11, 1001, 3, '2023-02-27', 1003.78);
+
+-- VIEWING AND DELETING TRIGGERS 
+SHOW TRIGGERS
+WHERE EVENTS = 'name';
+
+DROP TRIGGER IF EXISTS "NAME";
+-- CREATE TRIGGER name_of_this_trigger
+
+-- 	EVENTS
+DELIMITER $$
+CREATE EVENT delete_old_orders
+ON SCHEDULE EVERY 30 SECOND
+DO
+BEGIN
+	DELETE
+    FROM customer_orders
+    WHERE order_date < NOW() - INTERVAL 5 YEAR;
+END $$
+DELIMITER ;
+
+SHOW EVENTS;
+
+DELIMITER $$
+ALTER EVENT delete_old_orders
+ON SCHEDULE EVERY 30 DAY
+DO
+BEGIN
+	DELETE
+    FROM customer_orders
+    WHERE order_date < NOW() - INTERVAL 5 YEAR;
+END $$
+DELIMITER ;
+
+-- INDEX AND PERFORMANCE
+CREATE INDEX idx_area_code1
+ON ushouseholdincome(State_Name(3), Aland);
+
+EXPLAIN SELECT *
+FROM ushouseholdincome
+WHERE Area_Code <> 203;
+
+SHOW INDEXES IN ushouseholdincome;
+
+DROP INDEX idx_area_code ON ushouseholdincome;
+
+-- BEST PRACTICE
+-- composite indexes are good but order really matters
+-- Avoid SELECT *
+-- WHERE CLAUSE  
+
+
 
 
 

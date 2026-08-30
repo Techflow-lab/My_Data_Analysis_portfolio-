@@ -73,7 +73,7 @@ SELECT staff_id, AVG(amount)
 FROM payment 
 GROUP BY staff_id WITH ROLLUP
 
-# JOIN
+#                                       JOIN
 #1. INNER JOIN
 #2. LEFT/RIGHT JOIN
 #3. FULL JOIN(BUT NOT IN MySQL)
